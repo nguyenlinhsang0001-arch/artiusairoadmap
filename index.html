@@ -29,6 +29,9 @@
   .pulse{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-3)}
   .pulse i{width:7px;height:7px;border-radius:99px;background:var(--ink-3)}
   .pulse.on i{background:var(--ok);box-shadow:0 0 0 3px rgba(26,143,122,.16)}
+  .pulse+.pulse{margin-top:3px}
+  #online{cursor:default}
+  #online.on i{background:#2f6fb5;box-shadow:0 0 0 3px rgba(47,111,181,.16)}
 
   nav{position:sticky;top:0;z-index:40;background:rgba(246,244,241,.93);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .tabs{max-width:1632px;margin:0 auto;padding:0 28px;display:flex;gap:2px;align-items:center}
@@ -657,6 +660,7 @@
     <div class="bignum" id="ovp">—</div>
     <div class="livebar"><i id="ovbar" style="width:0%"></i></div>
     <div class="pulse" id="pulse"><i></i><span id="pulsetxt">Đang tải dữ liệu…</span></div>
+    <div class="pulse" id="online" hidden><i></i><span id="onltxt">—</span></div>
   </div>
 </div></header>
 
@@ -2490,12 +2494,54 @@ async function SB_INIT(){
     can(){return true;}};
 }
 function myName(){try{return (localStorage.getItem("artius_name")||"").trim();}catch(e){return "";}}
+/* ===================== ai đang mở trang (Realtime Presence) =====================
+   Presence của Supabase giữ trạng thái trong bộ nhớ của realtime server, không
+   ghi vào database -> không cần bảng, không đụng RLS, tự dọn khi người dùng
+   đóng tab hoặc rớt mạng.                                                      */
+let PRES=null;
+const CLIENT_ID=(()=>{                      // mỗi TAB một id riêng
+  try{ let k=sessionStorage.getItem("artius_cid");
+       if(!k){k="c_"+Math.random().toString(36).slice(2,10);sessionStorage.setItem("artius_cid",k);}
+       return k; }
+  catch(e){ return "c_"+Math.random().toString(36).slice(2,10); }
+})();
+
+function renderOnline(){
+  const box=document.getElementById("online"), el=document.getElementById("onltxt");
+  if(!box||!el)return;
+  if(!PRES){box.hidden=true;return;}
+  const st=PRES.presenceState()||{};
+  const names=Object.values(st).map(a=>((a&&a[0])||{}).name||"Khách");
+  if(!names.length){box.hidden=true;return;}
+  // gộp các tab của cùng một người theo tên; người chưa đặt tên thì đếm riêng
+  const named=[...new Set(names.filter(n=>n!=="Khách"))];
+  const guests=names.filter(n=>n==="Khách").length;
+  const n=named.length+guests;
+  box.hidden=false; box.classList.add("on");
+  el.textContent=n+" người đang mở trang";
+  const parts=[]; if(named.length)parts.push(named.join(", "));
+  if(guests)parts.push(guests+" người chưa đặt tên");
+  box.title=parts.join(" · ");
+}
+function presPayload(){return {name:myName()||"Khách",at:new Date().toISOString()};}
+function presenceInit(){
+  if(!SB)return;
+  PRES=SB.channel("presence-roadmap",{config:{presence:{key:CLIENT_ID}}});
+  PRES.on("presence",{event:"sync"},renderOnline)
+      .on("presence",{event:"join"},renderOnline)
+      .on("presence",{event:"leave"},renderOnline)
+      .subscribe(st=>{ if(st==="SUBSCRIBED")PRES.track(presPayload()).catch(()=>{}); });
+}
+function presenceRename(){                  // gọi khi người dùng đổi ô "Tên của bạn"
+  if(PRES)PRES.track(presPayload()).catch(()=>{});
+}
+
 function authHTML(){
   return `<input id="myname" class="myname" placeholder="Tên của bạn" maxlength="30" value="${esc(myName())}" title="Tên hiện ở mục cập nhật khi bạn sửa">`;
 }
 function bindAuth(tb){
   const i=tb.querySelector("#myname"); if(!i)return;
-  i.onchange=()=>{try{localStorage.setItem("artius_name",i.value.trim());}catch(e){}};
+  i.onchange=()=>{try{localStorage.setItem("artius_name",i.value.trim());}catch(e){}presenceRename();};
 }
 
 /* ===================== tabs ===================== */
@@ -2528,6 +2574,7 @@ let timer=setTimeout(()=>{if(!READY)document.getElementById("pulsetxt").textCont
     DB.collection("gates").onSnapshot(s=>{GT=rows(s);done();},()=>{});
     DB.collection("meta").onSnapshot(s=>{const m=rows(s);if(m.config)CFG={...DEFCFG,...m.config};if(m.org)ORG={pos:m.org.pos||[],add:m.org.add||[],del:m.org.del||[]};done();},()=>{});
   }catch(e){clearTimeout(timer);}
+  try{presenceInit();}catch(e){console.warn("Presence lỗi",e);}
   renderToolbar();
 })();
 
