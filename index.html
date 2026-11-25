@@ -2413,7 +2413,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Delete"&&orgSel&&canW()&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||""))orgDelEdge(orgSel);});
 
 /* ===================== kết nối Supabase (thay cho kho dữ liệu của Claude) ===================== */
-const SB_URL="https://amgghrkwfdulxhtszwlq.supabase.co", SB_KEY="sb_publishable_Ni9WwzyjTMvMG8lhq9pAmQ_RFyexPB_";
+const SB_URL="https://amgghrkwfdulxhtszwlq.supabase.co", SB_KEY="sb_publishable_Ni9WwzyjTMvMG8lhq9pAmQ_RFyexPB";
 const LEGACY_NAMES={"u_DxDM6O69tYLhXffZwljptQ":"Sang"};      // id người sửa trong bản cũ
 let SB=null, SBSESS=null;
 function SB_SHIM(sb){
