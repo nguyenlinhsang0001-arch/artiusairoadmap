@@ -2426,6 +2426,35 @@ function SB_SHIM(sb){
     cache[col]={}; (data||[]).forEach(r=>cache[col][r.id]=r.data);
     loaded[col]=true; notify(col);
   }
+
+  /* ---- tự đồng bộ lại sau khi mất kết nối ----
+     Realtime KHÔNG gửi bù các event bị lỡ trong lúc rớt mạng / máy sleep,
+     nên phải chủ động nạp lại các collection đã load khi:
+       1) channel realtime nối lại được,
+       2) người dùng quay lại tab,
+       3) máy có mạng trở lại.                                               */
+  let syncing=false, lastSync=Date.now(), everSub=false;
+  const SYNC_GAP=2000;                       // chặn gọi dồn khi nhiều sự kiện bắn cùng lúc
+  async function resyncAll(reason){
+    if(syncing||Date.now()-lastSync<SYNC_GAP)return;
+    const cols=Object.keys(loaded).filter(c=>loaded[c]);
+    if(!cols.length)return;
+    syncing=true;
+    try{ await Promise.all(cols.map(c=>load(c))); lastSync=Date.now(); }
+    catch(e){ console.warn("Đồng bộ lại thất bại ("+reason+")",e); }
+    finally{ syncing=false; }
+  }
+  function onChanStatus(st){
+    // lần SUBSCRIBED đầu tiên là lúc mở trang, load() đã chạy rồi nên bỏ qua
+    if(st!=="SUBSCRIBED")return;
+    if(everSub)resyncAll("realtime reconnect");
+    everSub=true;
+  }
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible")resyncAll("tab focus");
+  });
+  window.addEventListener("online",()=>resyncAll("online"));
+
   sb.channel("docs-live").on("postgres_changes",{event:"*",schema:"public",table:"docs"},p=>{
     const r=(p.eventType==="DELETE")?p.old:p.new; if(!r||!r.col)return;
     if(!loaded[r.col])return;
@@ -2433,7 +2462,7 @@ function SB_SHIM(sb){
     const cur=cache[r.col][r.id];
     if(cur&&JSON.stringify(cur)===JSON.stringify(p.new.data))return;       // tiếng vọng của chính mình
     cache[r.col][r.id]=p.new.data; notify(r.col);
-  }).subscribe();
+  }).subscribe(onChanStatus);
   const parse=path=>{const i=path.indexOf("/");return [path.slice(0,i),path.slice(i+1)];};
   return {
     collection(col){return {onSnapshot(cb,err){
