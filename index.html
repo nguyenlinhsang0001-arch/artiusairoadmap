@@ -674,12 +674,13 @@
   .grow.rovt .gdate{box-shadow:inset 0 2px 0 var(--brass)}
   .grow.rovb .gdate{box-shadow:inset 0 -2px 0 var(--brass)}
   /* nhãn ngày trên thanh: đẩy lên lane riêng (trên bar) + viền trắng nên đường nối không cắt chữ */
-  .gantt:not(.nodates) .gtrack{min-height:64px}
-  .bardate{top:50%;transform:translateY(-26px);font-size:10px;color:#9a938a;font-weight:600;
-    font-variant-numeric:tabular-nums;
+  /* label lane: dành sẵn 1 tầng phía trên thanh cho nhãn ngày */
+  .gantt:not(.nodates) .gtrack{min-height:62px}
+  .bardate{top:50%;transform:translateY(-27px);font-size:10px;line-height:12px;
+    color:#948d84;font-weight:650;letter-spacing:.015em;font-variant-numeric:tabular-nums;
     text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 2px var(--surface),0 0 2px var(--surface)}
-  .bardate.inside{color:#9a938a;font-weight:600;
-    text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 2px var(--surface),0 0 2px var(--surface)}
+  .bardate.inside{color:#948d84}
+  .grow:hover .bardate{color:var(--ink-2)}
   .gantt.nodates .bardate{display:none}
   @media(max-width:1180px){ .grow{grid-template-columns:300px 72px 72px 1fr} .gantt{min-width:1150px} }
 
@@ -881,8 +882,9 @@ tasks:[
 /* ===================== trạng thái ===================== */
 let CFG={...DEFCFG}, BR={}, TK={}, GT={};
 let OWNF="";
-/* P0: ngày chuẩn đã nằm ở 2 cột trái -> nhãn trên thanh mặc định tắt cho đỡ rối */
-let SHOWDATE=(()=>{try{return localStorage.getItem("artius_barDate")==="1";}catch(e){return false;}})();
+/* nhãn ngày trên thanh (label lane) — mặc định bật; tắt được để in cho gọn */
+let SHOWDATE=(()=>{try{const v=localStorage.getItem("artius_barDate");return v===null?true:v==="1";}
+  catch(e){return true;}})();
 let DB=null, USER=null, RO=false, NAMES={}, READY=false, OPEN=null;
 let seedArmed=false, delArmed=null, armTimer=null;
 let editOpen=false;
@@ -1065,24 +1067,24 @@ function renderTree(){                     // thẻ nhánh: thấy ngay có bao 
   bind();
 }
 
-/* nhãn ngày: bắt đầu ở mép trái thanh, kết thúc ở mép phải thanh.
-   Hết chỗ bên ngoài thì lùi vào trong thanh; thanh quá hẹp thì gộp một nhãn. */
+/* Nhãn ngày nằm trên "label lane" riêng phía trên thanh (không cùng tầng với đường nối).
+   - Thanh đủ rộng : ngày bắt đầu canh theo mép TRÁI thanh, ngày kết thúc canh theo mép PHẢI thanh
+                     -> cả cụm nhãn nằm gọn trong bề ngang thanh, không lấn sang ô bên cạnh.
+   - Thanh hẹp     : gộp thành 1 nhãn "dd/mm – dd/mm"; sát mép phải thì tự lật sang canh phải. */
+const LAB1=5.4, LAB2=11.5;      // % bề ngang tối thiểu cho 1 nhãn / cho đủ 2 nhãn hai mép
 function labelParts(sISO,eISO,a,e){
   const U=UNITS(), sp=a/U*100, ep=Math.max(e,a+U*0.013)/U*100, w=ep-sp;
   const sd=shortD(sISO), ed=shortD(eISO);
   const hide={show:false,txt:"",css:"display:none",inside:false};
-  if(w<7){
-    const one = ep<80
-      ? {show:true,txt:sd+" → "+ed,css:`left:${ep.toFixed(3)}%;margin-left:8px`,inside:false}
-      : {show:true,txt:sd+" → "+ed,css:`right:${(100-sp).toFixed(3)}%;margin-right:8px;text-align:right`,inside:false};
+  if(w<LAB2){                                   // hẹp -> 1 nhãn gộp
+    const txt=sd+" – "+ed;
+    const one = sp>100-LAB2*1.15
+      ? {show:true,txt,css:`right:${(100-ep).toFixed(3)}%;text-align:right`,inside:false}
+      : {show:true,txt,css:`left:${sp.toFixed(3)}%`,inside:false};
     return [hide,one];
   }
-  const S = sp>7
-    ? {show:true,txt:sd,css:`right:${(100-sp).toFixed(3)}%;margin-right:8px;text-align:right`,inside:false}
-    : {show:true,txt:sd,css:`left:${sp.toFixed(3)}%;margin-left:9px`,inside:true};
-  const E = ep<88
-    ? {show:true,txt:ed,css:`left:${ep.toFixed(3)}%;margin-left:8px`,inside:false}
-    : {show:true,txt:ed,css:`right:${(100-ep).toFixed(3)}%;margin-right:9px;text-align:right`,inside:true};
+  const S={show:true,txt:sd,css:`left:${sp.toFixed(3)}%`,inside:false};
+  const E={show:true,txt:ed,css:`right:${(100-ep).toFixed(3)}%;text-align:right`,inside:false};
   return [S,E];
 }
 function labHTML(part,id,which){
@@ -1092,7 +1094,7 @@ function applyLab(el,part){
   if(!el)return;
   el.className="bardate"+(part.inside?" inside":"");
   el.textContent=part.txt;
-  el.style.cssText=part.css+";position:absolute;top:50%;transform:translateY(-26px)";
+  el.style.cssText=part.css+";position:absolute;top:50%;transform:translateY(-27px)";
 }
 function renderGantt(){
   const bs=brList(), g=document.getElementById("gantt"), ml=monthLabels(), N=nowU(), inR=N>0&&N<UNITS();
