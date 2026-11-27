@@ -662,6 +662,27 @@
     font:inherit;font-size:12px;cursor:pointer;color:var(--ink-2)}
   .unass button:hover{border-color:var(--ink-3);color:var(--ink)}
   footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3)}
+  /* ===== P0: cột ngày cố định + nhãn ngày tách lane ===== */
+  .gantt{min-width:1202px}
+  .grow{grid-template-columns:330px 76px 76px 1fr}
+  .gdate{padding:10px 8px;border-right:1px solid var(--line);min-width:0;
+    display:flex;align-items:center;justify-content:center;white-space:nowrap;
+    font-size:11.5px;font-variant-numeric:tabular-nums;letter-spacing:.01em;color:var(--ink-2)}
+  .gdate.soon{color:var(--late);font-weight:650}
+  .ghead .gdate{align-items:flex-end;padding-bottom:13px;font-size:10px;font-weight:650;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .grow.rovt .gdate{box-shadow:inset 0 2px 0 var(--brass)}
+  .grow.rovb .gdate{box-shadow:inset 0 -2px 0 var(--brass)}
+  /* nhãn ngày trên thanh: đẩy lên lane riêng (trên bar) + viền trắng nên đường nối không cắt chữ */
+  .gantt:not(.nodates) .gtrack{min-height:64px}
+  .bardate{top:50%;transform:translateY(-26px);font-size:10px;color:#9a938a;font-weight:600;
+    font-variant-numeric:tabular-nums;
+    text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 2px var(--surface),0 0 2px var(--surface)}
+  .bardate.inside{color:#9a938a;font-weight:600;
+    text-shadow:0 0 3px var(--surface),0 0 3px var(--surface),0 0 2px var(--surface),0 0 2px var(--surface)}
+  .gantt.nodates .bardate{display:none}
+  @media(max-width:1180px){ .grow{grid-template-columns:300px 72px 72px 1fr} .gantt{min-width:1150px} }
+
   @media print{
     nav,.x,.form,.nodetools,#netadd,.bracts,.rgrip,.grip,.port,.eh,#netorphan,#priobar,.hint{display:none!important}
     section[hidden]{display:block!important}
@@ -860,6 +881,8 @@ tasks:[
 /* ===================== trạng thái ===================== */
 let CFG={...DEFCFG}, BR={}, TK={}, GT={};
 let OWNF="";
+/* P0: ngày chuẩn đã nằm ở 2 cột trái -> nhãn trên thanh mặc định tắt cho đỡ rối */
+let SHOWDATE=(()=>{try{return localStorage.getItem("artius_barDate")==="1";}catch(e){return false;}})();
 let DB=null, USER=null, RO=false, NAMES={}, READY=false, OPEN=null;
 let seedArmed=false, delArmed=null, armTimer=null;
 let editOpen=false;
@@ -1069,7 +1092,7 @@ function applyLab(el,part){
   if(!el)return;
   el.className="bardate"+(part.inside?" inside":"");
   el.textContent=part.txt;
-  el.style.cssText=part.css+";position:absolute;top:50%;transform:translateY(-50%)";
+  el.style.cssText=part.css+";position:absolute;top:50%;transform:translateY(-26px)";
 }
 function renderGantt(){
   const bs=brList(), g=document.getElementById("gantt"), ml=monthLabels(), N=nowU(), inR=N>0&&N<UNITS();
@@ -1082,6 +1105,7 @@ function renderGantt(){
   const gates=Object.values(GT).sort((a,b)=>dUnit(a.date)-dUnit(b.date));
   let h=`<div class="grow ghead"><div class="gcellL" style="display:flex;align-items:flex-end;font-size:11px;
     letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:650">Nhiệm vụ · Phụ trách</div>
+    <div class="gdate">Bắt đầu</div><div class="gdate">Kết thúc</div>
     <div style="position:relative;${headBg}"><div class="months" style="${gridStyle}">${ml.map(m=>`<div>${m}</div>`).join("")}</div>
     <div class="weeks" style="grid-template-columns:repeat(${nWk},1fr)">${wkCells}</div>
     ${gates.map(x=>`<div class="mslab" data-gt="${x.id}" style="left:${pct(dUnit(x.date))}">${esc(x.code||"Mốc")}</div>`).join("")}
@@ -1100,6 +1124,8 @@ function renderGantt(){
           <span class="taskmeta"><span class="chip sm ${chipFor(st)}">${st}</span>
           ${(t.owners||[]).map(o=>`<span class="owner"><i class="av">${initials(o)}</i>${esc(o)}</span>`).join("")}
           ${warnChips(t)}</span></div>
+        <div class="gdate" data-ds="${t.id}">${shortD(t.start)}</div>
+        <div class="gdate${isLate(t)?" soon":""}" data-de="${t.id}">${shortD(t.end)}</div>
         <div class="gtrack" style="${trackBg}">
           ${gates.map(x=>`<div class="ms" style="left:${pct(dUnit(x.date))}"></div>`).join("")}
           <div class="nowline ${nowCls()}" style="left:${pct(N)}"></div>
@@ -1114,14 +1140,23 @@ function renderGantt(){
           </div></div>`;});
   });
   g.innerHTML=`<svg class="gsvg" id="gsvg"></svg>`+h;
+  g.classList.toggle("nodates",!SHOWDATE);
   bindGantt(g);
   drawGanttLinks();
   const owners=[...new Set(Object.values(TK).flatMap(t=>t.owners||[]))].sort((a,b)=>a.localeCompare(b,"vi"));
   if(OWNF&&!owners.includes(OWNF))OWNF="";
   const lg=document.getElementById("legend");
   lg.innerHTML=`<span class="ofl">Phụ trách:</span><button class="ofb ${OWNF?"":"on"}" data-of="">Tất cả</button>`+
-    owners.map(o=>`<button class="ofb ${OWNF===o?"on":""}" data-of="${esc(o)}"><i class="av">${initials(o)}</i>${esc(o)}</button>`).join("");
+    owners.map(o=>`<button class="ofb ${OWNF===o?"on":""}" data-of="${esc(o)}"><i class="av">${initials(o)}</i>${esc(o)}</button>`).join("")+
+    `<button class="ofb ${SHOWDATE?"on":""}" id="bdtg" title="Bật/tắt nhãn ngày hiển thị ngay trên thanh Gantt">Ngày trên thanh</button>`;
   lg.querySelectorAll("[data-of]").forEach(b=>b.onclick=()=>{OWNF=b.dataset.of;renderGantt();});
+  const bdt=document.getElementById("bdtg");
+  if(bdt)bdt.onclick=()=>{                       // đổi class, không render lại -> giữ nguyên thao tác đang kéo
+    SHOWDATE=!SHOWDATE;
+    try{localStorage.setItem("artius_barDate",SHOWDATE?"1":"0");}catch(e){}
+    document.getElementById("gantt").classList.toggle("nodates",!SHOWDATE);
+    bdt.classList.toggle("on",SHOWDATE);
+    drawGanttLinks();};
   bind();
 }
 
@@ -1160,7 +1195,9 @@ function bindGantt(g){
       const track=b.parentElement;
       gDrag={id:t.id,mode,x0:ev.clientX,w:track.clientWidth||1,s:t.start,e:t.end,el:b,
              labS:track.querySelector('[data-lab-s="'+t.id+'"]'),
-             labE:track.querySelector('[data-lab-e="'+t.id+'"]'),moved:false,cur:null};
+             labE:track.querySelector('[data-lab-e="'+t.id+'"]'),
+             colS:track.parentElement.querySelector('[data-ds="'+t.id+'"]'),
+             colE:track.parentElement.querySelector('[data-de="'+t.id+'"]'),moved:false,cur:null};
       b.classList.add("grab");
     };
     b.onmousedown=begin("move");
@@ -1586,6 +1623,8 @@ document.addEventListener("mousemove",ev=>{
     gDrag.el.style.width=Math.max(1.2,(b2-a2)/UNITS()*100)+"%";
     const [S2,E2]=labelParts(gDrag.cur.s,gDrag.cur.e,a2,b2);
     applyLab(gDrag.labS,S2); applyLab(gDrag.labE,E2);
+    if(gDrag.colS)gDrag.colS.textContent=shortD(gDrag.cur.s);   // 2 cột trái bám theo thanh khi kéo
+    if(gDrag.colE)gDrag.colE.textContent=shortD(gDrag.cur.e);
     return;
   }
   const canvas=document.getElementById("netcanvas"); if(!canvas)return;
