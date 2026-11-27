@@ -1077,7 +1077,7 @@ function labelParts(sISO,eISO,a,e){
   const sd=shortD(sISO), ed=shortD(eISO);
   const hide={show:false,txt:"",css:"display:none",inside:false};
   if(w<LAB2){                                   // hẹp -> 1 nhãn gộp
-    const txt=sd+" – "+ed;
+    const txt=(sd===ed)?sd:sd+" – "+ed;      // nhiệm vụ gói trong 1 ngày -> chỉ hiện 1 ngày
     const one = sp>100-LAB2*1.15
       ? {show:true,txt,css:`right:${(100-ep).toFixed(3)}%;text-align:right`,inside:false}
       : {show:true,txt,css:`left:${sp.toFixed(3)}%`,inside:false};
