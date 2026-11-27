@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#f6f4f1; --surface:#fff; --ink:#1c1a18; --ink-2:#4a453f; --ink-3:#8c857c;
-    --line:#e2ddd6; --line-2:#cfc8bf; --brass:#a97b2f; --brass-soft:#f3e9d7;
+    --line:#e2ddd6; --line-2:#cfc8bf; --line-w:#eeeae4; --brass:#a97b2f; --brass-soft:#f3e9d7;
     --ok:#1a8f7a; --late:#c0453f;
     --r:10px; --sh:0 1px 2px rgba(28,26,24,.06),0 8px 24px rgba(28,26,24,.05);
   }
@@ -128,7 +128,7 @@
   .ghead{position:sticky;top:0;z-index:5;background:#faf8f6;border-bottom:1px solid var(--line-2)}
   .gcellL{padding:10px 14px;border-right:1px solid var(--line);min-width:0}
   .months{display:grid;font-size:11px;color:var(--ink-3);font-weight:650;letter-spacing:.04em;text-transform:uppercase}
-  .months div{padding:10px 6px;border-left:1px solid var(--line);text-align:center}
+  .months div{padding:10px 6px 22px;border-left:1px solid var(--line);text-align:center}   /* chừa băng dưới cho nhãn "Hôm nay" */
   .gtrack{position:relative;min-height:44px;display:flex;align-items:center;padding:8px 0}
   .gstream{background:#f2efec;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);
     padding:8px 14px;grid-column:1/-1;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
@@ -146,9 +146,18 @@
   .ms{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--brass);pointer-events:none}
   .mslab{position:absolute;top:2px;transform:translateX(-50%);background:var(--brass);color:#fff;font-size:10px;font-weight:700;
     padding:2px 7px;border-radius:99px;white-space:nowrap;z-index:6;cursor:pointer}
-  .nowline{position:absolute;top:0;bottom:0;width:0;border-left:2px solid #1c1a18;pointer-events:none;z-index:4}
-  .nowlab{position:absolute;bottom:2px;transform:translateX(-50%);background:#1c1a18;color:#fff;font-size:10px;font-weight:700;
-    padding:2px 7px;border-radius:99px;white-space:nowrap;z-index:6}
+  .nowline{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--late);pointer-events:none;z-index:4}
+  .nowline.out{border-left-style:dotted;border-left-color:var(--ink-3)}
+  .nowlab{position:absolute;bottom:2px;transform:translateX(-50%);background:var(--late);color:#fff;font-size:10px;font-weight:700;
+    padding:2px 7px;border-radius:99px;white-space:nowrap;z-index:6;box-shadow:0 1px 3px rgba(28,26,24,.2)}
+  .nowlab.out{background:var(--ink-3)}
+  .nowlab.at0{transform:translateX(0)}
+  .nowlab.at100{transform:translateX(-100%)}
+  .nowtri{position:absolute;bottom:-5px;width:0;height:0;transform:translateX(-50%);
+    border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--late);z-index:6;pointer-events:none}
+  .nowtri.out{border-top-color:var(--ink-3)}
+  .nowtri.at0{transform:translateX(0)}
+  .nowtri.at100{transform:translateX(-100%)}
   .grow.rdrag{opacity:.4}
   .grow.rovt .gcellL,.grow.rovt .gtrack{box-shadow:inset 0 2px 0 var(--brass)}
   .grow.rovb .gcellL,.grow.rovb .gtrack{box-shadow:inset 0 -2px 0 var(--brass)}
@@ -453,7 +462,7 @@
   .ghead{position:sticky;top:0;z-index:5;background:#faf8f6;border-bottom:1px solid var(--line-2)}
   .gcellL{padding:10px 14px;border-right:1px solid var(--line);min-width:0}
   .months{display:grid;font-size:11px;color:var(--ink-3);font-weight:650;letter-spacing:.04em;text-transform:uppercase}
-  .months div{padding:10px 6px;border-left:1px solid var(--line);text-align:center}
+  .months div{padding:10px 6px 22px;border-left:1px solid var(--line);text-align:center}   /* chừa băng dưới cho nhãn "Hôm nay" */
   .gtrack{position:relative;min-height:44px;display:flex;align-items:center;padding:8px 0}
   .gstream{background:#f2efec;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);
     padding:8px 14px;grid-column:1/-1;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
@@ -471,9 +480,18 @@
   .ms{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--brass);pointer-events:none}
   .mslab{position:absolute;top:2px;transform:translateX(-50%);background:var(--brass);color:#fff;font-size:10px;font-weight:700;
     padding:2px 7px;border-radius:99px;white-space:nowrap;z-index:6;cursor:pointer}
-  .nowline{position:absolute;top:0;bottom:0;width:0;border-left:2px solid #1c1a18;pointer-events:none;z-index:4}
-  .nowlab{position:absolute;bottom:2px;transform:translateX(-50%);background:#1c1a18;color:#fff;font-size:10px;font-weight:700;
-    padding:2px 7px;border-radius:99px;white-space:nowrap;z-index:6}
+  .nowline{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--late);pointer-events:none;z-index:4}
+  .nowline.out{border-left-style:dotted;border-left-color:var(--ink-3)}
+  .nowlab{position:absolute;bottom:2px;transform:translateX(-50%);background:var(--late);color:#fff;font-size:10px;font-weight:700;
+    padding:2px 7px;border-radius:99px;white-space:nowrap;z-index:6;box-shadow:0 1px 3px rgba(28,26,24,.2)}
+  .nowlab.out{background:var(--ink-3)}
+  .nowlab.at0{transform:translateX(0)}
+  .nowlab.at100{transform:translateX(-100%)}
+  .nowtri{position:absolute;bottom:-5px;width:0;height:0;transform:translateX(-50%);
+    border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--late);z-index:6;pointer-events:none}
+  .nowtri.out{border-top-color:var(--ink-3)}
+  .nowtri.at0{transform:translateX(0)}
+  .nowtri.at100{transform:translateX(-100%)}
   .grow.rdrag{opacity:.4}
   .grow.rovt .gcellL,.grow.rovt .gtrack{box-shadow:inset 0 2px 0 var(--brass)}
   .grow.rovb .gcellL,.grow.rovb .gtrack{box-shadow:inset 0 -2px 0 var(--brass)}
@@ -719,7 +737,7 @@
 const STATUS=["Chưa bắt đầu","Đang làm","Chậm tiến độ","Tạm dừng","Hoàn thành"];
 const PALETTE=[["Tím","#7c5cc4"],["Xanh dương","#2f6fb5"],["Xanh ngọc","#1a8f7a"],["Cam","#c97a1c"],
                ["Đỏ","#c0453f"],["Xám","#6b6b6b"],["Xanh lá","#4f8f2f"],["Hồng","#b2478a"]];
-const DEFCFG={title:"Lộ trình Hệ thống hoá & Ứng dụng AI",start:"2026-12-01",months:7,roots:["CONCEPT","2D","NỀN TẢNG"]};
+const DEFCFG={title:"Lộ trình Hệ thống hoá & Ứng dụng AI",start:"2026-11-08",months:8,roots:["CONCEPT","2D","NỀN TẢNG"]};
 
 /* ===================== kế hoạch gốc (chỉ dùng cho nút "Nạp kế hoạch gốc") ===================== */
 const SEED={
@@ -856,7 +874,22 @@ function brList(){
 function tkOf(id){const ids=realIds();
   return tkList().filter(t=>id==="__orphan"?!ids.has(t.branch):t.branch===id);}
 const tName=t=>t.name||t.code||t.id;
-const UNITS=()=>CFG.months*2;
+const UNITS=()=>CFG.months*2-WOFF();
+function WOFF(){                           // khung có thể bắt đầu giữa tháng: lệch bao nhiêu tuần (1 tháng = 4 tuần = 2 unit)
+  const s=new Date((CFG.start||"")+"T00:00:00"); if(isNaN(s)) return 0;
+  const dim=new Date(s.getFullYear(),s.getMonth()+1,0).getDate();
+  return Math.min(3,Math.max(0,Math.round((s.getDate()-1)/dim*4)))*0.5;
+}
+const startWeek=()=>WOFF()*2+1;            // 1..4 — tuần đầu tiên được hiển thị
+function gridBg(withMonths){               // nền lưới: vạch tháng đậm, vạch tuần mờ hơn
+  const U=UNITS(), w=(0.5/U*100).toFixed(5), L=[];
+  if(withMonths) for(let k=1;k<CFG.months;k++){
+    const p=((k*2-WOFF())/U*100).toFixed(5); if(+p<=0||+p>=100) continue;
+    L.push(`linear-gradient(to right,transparent calc(${p}% - 1px),var(--line) calc(${p}% - 1px),var(--line) ${p}%,transparent ${p}%)`);
+  }
+  L.push(`repeating-linear-gradient(to right,transparent 0,transparent calc(${w}% - 1px),var(--line-w) calc(${w}% - 1px),var(--line-w) ${w}%)`);
+  return "background:"+L.join(",");
+}
 
 function dUnit(iso){
   if(!iso) return 0;
@@ -864,13 +897,13 @@ function dUnit(iso){
   if(isNaN(d)||isNaN(s)) return 0;
   const m=(d.getFullYear()-s.getFullYear())*12+(d.getMonth()-s.getMonth());
   const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
-  return (m+(d.getDate()-1)/dim)*2;
+  return (m+(d.getDate()-1)/dim)*2-WOFF();
 }
 const clampU=u=>Math.max(0,Math.min(UNITS(),u));
 const isoD=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 function uToDate(u){                       // nghịch đảo của dUnit
   const s=new Date(CFG.start+"T00:00:00");
-  let mf=Math.max(0,u)/2, m=Math.floor(mf), fr=mf-m;
+  let mf=Math.max(0,u+WOFF())/2, m=Math.floor(mf), fr=mf-m;
   const d0=new Date(s.getFullYear(),s.getMonth()+m,1);
   const dim=new Date(d0.getFullYear(),d0.getMonth()+1,0).getDate();
   let day=Math.round(fr*dim)+1;
@@ -884,7 +917,34 @@ function nowU(){
   const n=new Date(), s=new Date(CFG.start+"T00:00:00");
   const m=(n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth());
   const dim=new Date(n.getFullYear(),n.getMonth()+1,0).getDate();
-  return (m+(n.getDate()-1)/dim)*2;
+  return (m+(n.getDate()-1)/dim)*2-WOFF();
+}
+
+function nowTxt(){                      // nhãn "Hôm nay" kèm ngày/tháng
+  const d=new Date();
+  return "Hôm nay · "+d.getDate()+"/"+(d.getMonth()+1);
+}
+function nowTip(){                      // chú thích hiện khi rê chuột lên nhãn
+  const d=new Date(), N=nowU();
+  const full=d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear();
+  const sd=new Date(CFG.start+"T00:00:00");
+  const sv=sd.getDate()+"/"+(sd.getMonth()+1)+"/"+sd.getFullYear();
+  if(N<=0) return "Hôm nay "+full+" — chưa tới ngày bắt đầu kế hoạch ("+sv+")";
+  if(N>=UNITS()) return "Hôm nay "+full+" — đã vượt khung thời gian kế hoạch";
+  return "Hôm nay "+full;
+}
+function nowCls(){                      // "out" khi hôm nay nằm ngoài khung thời gian kế hoạch
+  const N=nowU(); return (N>0&&N<UNITS()) ? "" : "out";
+}
+function nowEdge(){                     // ghim nhãn lại trong khung khi vạch bị kẹp về 2 biên
+  const N=nowU(); return N<=0 ? " at0" : (N>=UNITS() ? " at100" : "");
+}
+function tickNow(){                     // dịch vạch khi sang ngày mới, không cần tải lại trang
+  const L=pct(nowU()), o=(nowCls()==="out"), e=nowEdge();
+  document.querySelectorAll(".nowline").forEach(x=>{x.style.left=L;x.classList.toggle("out",o);});
+  document.querySelectorAll(".nowtri,.nowlab").forEach(x=>{x.style.left=L;x.classList.toggle("out",o);
+    x.classList.toggle("at0",e===" at0");x.classList.toggle("at100",e===" at100");});
+  document.querySelectorAll(".nowlab").forEach(x=>{x.textContent=nowTxt();x.title=nowTip();});
 }
 function monthLabels(){
   const s=new Date(CFG.start+"T00:00:00"), out=[];
@@ -1009,14 +1069,16 @@ function applyLab(el,part){
 function renderGantt(){
   const bs=brList(), g=document.getElementById("gantt"), ml=monthLabels(), N=nowU(), inR=N>0&&N<UNITS();
   if(!bs.length){g.innerHTML=`<div style="padding:26px">${emptyMsg()}</div>`;return;}
-  const gridStyle=`grid-template-columns:repeat(${CFG.months},1fr)`;
-  const trackBg=`background:repeating-linear-gradient(to right,transparent 0,transparent calc(100%/${CFG.months} - 1px),var(--line) calc(100%/${CFG.months} - 1px),var(--line) calc(100%/${CFG.months}))`;
+  const fw=(1-WOFF()/2).toFixed(4);        // cột tháng đầu hẹp lại khi khung bắt đầu giữa tháng
+  const gridStyle=`grid-template-columns:${fw}fr repeat(${CFG.months-1},1fr)`;
+  const trackBg=gridBg(true), headBg=gridBg(false);
   const gates=Object.values(GT).sort((a,b)=>dUnit(a.date)-dUnit(b.date));
   let h=`<div class="grow ghead"><div class="gcellL" style="display:flex;align-items:flex-end;font-size:11px;
     letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:650">Nhiệm vụ · Phụ trách</div>
-    <div style="position:relative"><div class="months" style="${gridStyle}">${ml.map(m=>`<div>${m}</div>`).join("")}</div>
+    <div style="position:relative;${headBg}"><div class="months" style="${gridStyle}">${ml.map(m=>`<div>${m}</div>`).join("")}</div>
     ${gates.map(x=>`<div class="mslab" data-gt="${x.id}" style="left:${pct(dUnit(x.date))}">${esc(x.code||"Mốc")}</div>`).join("")}
-    ${inR?`<div class="nowlab" style="left:${pct(N)}">Hôm nay</div>`:""}</div></div>`;
+    <div class="nowlab ${nowCls()}${nowEdge()}" title="${esc(nowTip())}" style="left:${pct(N)}">${esc(nowTxt())}</div>
+    <div class="nowtri ${nowCls()}${nowEdge()}" style="left:${pct(N)}"></div></div></div>`;
   bs.forEach(b=>{
     const ts=tkOf(b.id).filter(t=>!OWNF||(t.owners||[]).includes(OWNF)); if(!ts.length)return;
     const avg=Math.round(ts.reduce((a,t)=>a+prog(t),0)/ts.length);
@@ -1032,7 +1094,7 @@ function renderGantt(){
           ${warnChips(t)}</span></div>
         <div class="gtrack" style="${trackBg}">
           ${gates.map(x=>`<div class="ms" style="left:${pct(dUnit(x.date))}"></div>`).join("")}
-          ${inR?`<div class="nowline" style="left:${pct(N)}"></div>`:""}
+          <div class="nowline ${nowCls()}" style="left:${pct(N)}"></div>
           <div class="bar ${isLate(t)?"late":""} ${st==="Hoàn thành"?"done":""}" data-tk="${t.id}" data-b="${t.id}"
                style="left:${pct(a)};width:${w}%;background:${esc(b.color||"#999")}">
             <div class="fill" style="width:${p}%"></div>
@@ -2158,8 +2220,9 @@ function openCfg(){
       <textarea id="c_r">${esc((CFG.roots||[]).join("\n"))}</textarea></div>
     <div class="acts"><button class="btn" id="save">Lưu</button><button class="btn ghost" id="cancel">Đóng</button></div>
     <div class="msg" id="msg"></div>
-    <p style="font-size:12px;color:var(--ink-3);margin-top:10px">Ngày bắt đầu nên là ngày 1 của tháng đầu tiên.
-    Nhiệm vụ nằm ngoài khung sẽ bị cắt ở mép biểu đồ chứ không mất dữ liệu.</p></div>`;
+    <p style="font-size:12px;color:var(--ink-3);margin-top:10px">Mỗi tháng trên biểu đồ chia 4 cột tuần. Ngày bắt đầu có thể rơi vào
+    bất kỳ tuần nào: khung sẽ bắt đầu ngay từ tuần đó (ví dụ 08/11 → bắt đầu tuần 2 của tháng 11).
+    Số tháng đếm từ tháng của ngày bắt đầu. Nhiệm vụ nằm ngoài khung bị cắt ở mép biểu đồ chứ không mất dữ liệu.</p></div>`;
   const q=s=>document.querySelector("#dbody "+s);
   q("#cancel").onclick=closeD;
   q("#save").onclick=async()=>{
@@ -2555,6 +2618,7 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
 
 /* ===================== khởi tạo ===================== */
 renderAll();
+setInterval(tickNow,600000);            // vạch "Hôm nay" tự dịch sang ngày mới
 let timer=setTimeout(()=>{if(!READY)document.getElementById("pulsetxt").textContent=
   "Không kết nối được dữ liệu — hãy tải lại trang";},10000);
 
